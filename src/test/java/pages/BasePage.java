@@ -1,44 +1,48 @@
 package pages;
 
-import io.qameta.allure.Step;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.time.Duration;
-
 public abstract class BasePage {
     protected final WebDriver driver;
     protected final WebDriverWait wait;
+    protected final JavascriptExecutor js;
 
-    public BasePage(WebDriver driver) {
-        this.driver = driver;
-        this.wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+    protected BasePage(WebDriver d, WebDriverWait w) {
+        this.driver = d;
+        this.wait = w;
+        this.js = (JavascriptExecutor) driver;
     }
 
-    @Step("Найти элемент: {locator}")
-    protected WebElement find(By locator) {
+    protected WebElement el(By locator) {
         return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
 
-    @Step("Кликнуть на элемент: {locator}")
     protected void click(By locator) {
         wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
     }
 
-    @Step("Ввести текст '{text}' в элемент: {locator}")
-    protected void type(By locator, String text) {
-        WebElement element = find(locator);
-        element.clear();
-        element.sendKeys(text);
+    protected void clickWithJS(By locator) {
+        WebElement element = el(locator);
+        js.executeScript("arguments[0].click();", element);
     }
 
-    @Step("Проверить видимость элемента: {locator}")
+    protected void type(By locator, String text) {
+        el(locator).clear();
+        el(locator).sendKeys(text);
+    }
+
+    protected String getText(By locator) {
+        return el(locator).getText();
+    }
+
     protected boolean isVisible(By locator) {
         try {
-            return find(locator).isDisplayed();
+            return el(locator).isDisplayed();
         } catch (Exception e) {
             return false;
         }

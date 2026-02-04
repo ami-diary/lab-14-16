@@ -9,6 +9,7 @@ import org.openqa.selenium.edge.EdgeDriver;
 import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -20,54 +21,55 @@ import java.time.Duration;
 
 public abstract class BaseTest {
     protected WebDriver driver;
+    protected WebDriverWait wait;
 
     @BeforeMethod
     @Parameters({"browser", "headless"})
     public void setUp(@Optional("chrome") String browser,
-                      @Optional("false") String headless) {
-        System.out.println("🚀 Настройка драйвера для браузера: " + browser);
+                      @Optional("false") String headlessStr) {
 
-        boolean isHeadless = Boolean.parseBoolean(headless);
+        boolean isHeadless = Boolean.parseBoolean(headlessStr);
 
         switch (browser.toLowerCase()) {
             case "firefox":
                 WebDriverManager.firefoxdriver().setup();
                 FirefoxOptions firefoxOptions = new FirefoxOptions();
-                if (isHeadless) firefoxOptions.addArguments("--headless");
+                if (isHeadless) firefoxOptions.addArguments("-headless");
                 driver = new FirefoxDriver(firefoxOptions);
                 break;
 
             case "edge":
                 WebDriverManager.edgedriver().setup();
                 EdgeOptions edgeOptions = new EdgeOptions();
-                if (isHeadless) edgeOptions.addArguments("--headless");
+                if (isHeadless) edgeOptions.addArguments("--headless=new");
                 driver = new EdgeDriver(edgeOptions);
                 break;
 
-            default: // chrome
+            case "chrome":
+            default:
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions chromeOptions = new ChromeOptions();
-                if (isHeadless) chromeOptions.addArguments("--headless");
+                if (isHeadless) chromeOptions.addArguments("--headless=new");
                 driver = new ChromeDriver(chromeOptions);
                 break;
         }
 
         driver.manage().window().maximize();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
-        System.out.println("✅ Драйвер готов: " + browser + (isHeadless ? " (headless)" : ""));
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     @AfterMethod(alwaysRun = true)
     public void tearDown(ITestResult result) {
-        System.out.println("🛑 Завершаю тест: " + result.getName());
-
         if (!result.isSuccess() && driver != null) {
             try {
                 byte[] screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.BYTES);
-                Allure.addAttachment("FAIL: " + result.getName(),
-                        new ByteArrayInputStream(screenshot));
+                Allure.addAttachment("Скриншот при падении",
+                        "image/png",
+                        new ByteArrayInputStream(screenshot),
+                        ".png");
             } catch (Exception e) {
-                System.out.println("❌ Не удалось сделать скриншот");
+                // ignore
             }
         }
 

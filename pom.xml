@@ -14,17 +14,20 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <!-- Версии -->
+        <!-- Версии зависимостей -->
         <selenium.version>4.22.0</selenium.version>
         <testng.version>7.10.2</testng.version>
         <allure.version>2.25.0</allure.version>
         <allure.maven.plugin.version>2.12.0</allure.maven.plugin.version>
         <aspectj.version>1.9.21</aspectj.version>
         <webdrivermanager.version>5.9.1</webdrivermanager.version>
+        <slf4j.version>2.0.13</slf4j.version> <!-- ДОБАВЛЕНО -->
+        <maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
     </properties>
 
     <dependencies>
-        <!-- Selenium -->
+        <!-- Selenium WebDriver -->
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
@@ -36,16 +39,18 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
+            <scope>test</scope>
         </dependency>
 
-        <!-- Allure для TestNG (ВАЖНО!) -->
+        <!-- Allure для TestNG -->
         <dependency>
             <groupId>io.qameta.allure</groupId>
             <artifactId>allure-testng</artifactId>
             <version>${allure.version}</version>
+            <scope>test</scope>
         </dependency>
 
-        <!-- Для аннотаций @Step (ОБЯЗАТЕЛЬНО!) -->
+        <!-- AspectJ для @Step, @Attachment аннотаций -->
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjweaver</artifactId>
@@ -53,37 +58,57 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- WebDriverManager -->
+        <!-- WebDriverManager (автоматическое управление драйверами) -->
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
             <artifactId>webdrivermanager</artifactId>
             <version>${webdrivermanager.version}</version>
         </dependency>
+
+        <!-- SLF4J API (УБИРАЕТ ОШИБКУ StaticLoggerBinder) -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <!-- SLF4J Simple Implementation -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <version>${slf4j.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Компилятор -->
+            <!-- Компилятор Java -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>${maven.compiler.plugin.version}</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
 
-            <!-- Запуск тестов с Allure (КРИТИЧЕСКИ ВАЖНО!) -->
+            <!-- Плагин для запуска тестов с поддержкой Allure -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.5</version>
+                <version>${maven.surefire.plugin.version}</version>
                 <configuration>
+                    <!-- Подключение AspectJ для работы аннотаций Allure -->
                     <argLine>
                         -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
                     </argLine>
+                    <includes>
+                        <include>**/*Test.java</include>
+                    </includes>
                     <systemProperties>
+                        <!-- Директория для результатов Allure -->
                         <property>
                             <name>allure.results.directory</name>
                             <value>${project.build.directory}/allure-results</value>
@@ -92,15 +117,28 @@
                 </configuration>
             </plugin>
 
-            <!-- Allure Maven Plugin -->
+            <!-- Allure Maven Plugin (генерация отчёта) -->
             <plugin>
                 <groupId>io.qameta.allure</groupId>
                 <artifactId>allure-maven</artifactId>
                 <version>${allure.maven.plugin.version}</version>
                 <configuration>
                     <reportVersion>${allure.version}</reportVersion>
+                    <resultsDirectory>${project.build.directory}/allure-results</resultsDirectory>
+                    <reportDirectory>${project.build.directory}/site/allure-maven</reportDirectory>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <reporting>
+        <plugins>
+            <!-- Генерация Allure отчёта в отчётах Maven -->
+            <plugin>
+                <groupId>io.qameta.allure</groupId>
+                <artifactId>allure-maven</artifactId>
+                <version>${allure.maven.plugin.version}</version>
+            </plugin>
+        </plugins>
+    </reporting>
 </project>
