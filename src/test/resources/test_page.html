@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Page - Text Box</title>
+    <style>
+        .field-error { border: 2px solid red; }
+        .output { margin-top: 20px; padding: 10px; background: #f0f0f0; }
+    </style>
+</head>
+<body>
+<h1>Text Box Demo</h1>
+
+<form id="textForm">
+    <div>
+        <label>Full Name:</label>
+        <input type="text" id="userName" placeholder="Full Name">
+    </div>
+
+    <div>
+        <label>Email:</label>
+        <input type="email" id="userEmail" placeholder="name@example.com">
+    </div>
+
+    <div>
+        <label>Current Address:</label>
+        <textarea id="currentAddress" placeholder="Current Address"></textarea>
+    </div>
+
+    <div>
+        <label>Permanent Address:</label>
+        <textarea id="permanentAddress" placeholder="Permanent Address"></textarea>
+    </div>
+
+    <button type="button" id="submit">Submit</button>
+</form>
+
+<div id="output" class="output" style="display: none;">
+    <h3>Output</h3>
+    <p>Name: <span id="nameOutput"></span></p>
+    <p>Email: <span id="emailOutput"></span></p>
+</div>
+
+<script>
+    document.getElementById('submit').addEventListener('click', function() {
+        const name = document.getElementById('userName').value;
+        const email = document.getElementById('userEmail').value;
+
+        // Валидация email
+        const emailField = document.getElementById('userEmail');
+        if (!email.includes('@')) {
+            emailField.classList.add('field-error');
+            return;
+        } else {
+            emailField.classList.remove('field-error');
+        }
+
+        // Показываем результат
+        document.getElementById('nameOutput').textContent = name;
+        document.getElementById('emailOutput').textContent = email;
+        document.getElementById('output').style.display = 'block';
+    });
+</script>
+</body>
+</html>
